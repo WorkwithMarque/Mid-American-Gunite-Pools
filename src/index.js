@@ -47,3 +47,5 @@ app.listen(PORT, () => {
     console.log(`Automatic hours sync enabled, running every ${syncInterval} hours`);
   }
 });
+
+export default app;
