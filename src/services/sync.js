@@ -1,5 +1,5 @@
 import workyardClient from '../api/workyard.js';
-import { mapJobTreadToWorkyardProject } from '../utils/transform.js';
+import { mapJobTreadToWorkyardProject, transformData } from '../utils/transform.js';
 import { logToFile } from '../utils/logging.js';
 import config from '../config.js';
 
@@ -14,7 +14,8 @@ export async function syncJobToWorkyard(jobTreadData) {
     await logToFile(jobTreadData, 'jobtread-job');
     
     // Transform JobTread job data to Workyard project format
-    const workyardProjectData = mapJobTreadToWorkyardProject(jobTreadData);
+    // const workyardProjectData = mapJobTreadToWorkyardProject(jobTreadData);
+    const workyardProjectData = transformData(jobTreadData);
     
     // Check if this project already exists in Workyard by external_id
     let existingProject = null;

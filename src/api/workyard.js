@@ -4,6 +4,7 @@ class WorkyardClient {
   constructor() {
     this.baseUrl = config.workyard.baseUrl;
     this.apiKey = config.workyard.apiKey;
+    this.orgId = config.workyard.orgId;
   }
 
   async request(endpoint, method = 'GET', data = null) {
@@ -39,19 +40,19 @@ class WorkyardClient {
   }
 
   async createOrUpdateProject(projectData) {
-    return this.request('/v1/projects', 'POST', projectData);
+    return this.request(`/orgs/${this.orgId}/projects`, 'POST', projectData);
   }
 
   async updateExistingProject(projectId, projectData) {
-    return this.request(`/v1/projects/${projectId}`, 'PUT', projectData);
+    return this.request(`/orgs/${this.orgId}/projects/${projectId}`, 'PUT', projectData);
   }
 
   async getProjects() {
-    return this.request('/v1/projects');
+    return this.request(`/orgs/${this.orgId}/projects`);
   }
 
   async getWorkedHours(startDate, endDate) {
-    return this.request(`/v1/time-entries?start_date=${startDate}&end_date=${endDate}`);
+    return this.request(`/time-entries?start_date=${startDate}&end_date=${endDate}`);
   }
 }
 

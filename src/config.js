@@ -15,6 +15,7 @@ export default {
   workyard: {
     baseUrl: process.env.WORKYARD_API_URL || 'https://api1.workyard.com',
     apiKey: process.env.WORKYARD_API_KEY,
+    orgId: process.env.ORG_ID,
   },
   server: {
     port: process.env.PORT || 3000,
