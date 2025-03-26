@@ -1,32 +1,107 @@
 import workyardClient from '../api/workyard.js';
-import { mapJobTreadToWorkyardProject, transformData } from '../utils/transform.js';
+import { transformData } from '../utils/transform.js';
 import { logToFile } from '../utils/logging.js';
 import config from '../config.js';
-
+import db from '../db.js'; 
 /**
  * Synchronize a JobTread job to Workyard as a project
  * @param {Object} jobTreadData - Job data from JobTread
  * @returns {Object} - Result of the synchronization
  */
+
+
+async function syncUser(userEmail, userName) {
+  try {
+    // Log the input data
+    await logToFile({ userEmail, userName }, 'sync-user');
+
+    const existingUser = await db('users').where({ email: userEmail }).first();
+
+    if (existingUser) {
+      console.log('User already exists:', existingUser);
+      await logToFile(`User already exists: ${JSON.stringify(existingUser)}`, 'sync-user');
+      return existingUser.workyard_user_id;
+    }
+
+    const workyardResponse = await workyardClient.createWorkyardUser(userName);
+
+    if (!workyardResponse || !workyardResponse.id) {
+      throw new Error('Failed to create Workyard user');
+    }
+
+    const workyardUserId = workyardResponse.id;
+
+    await db('users').insert({
+      email: userEmail,
+      workyard_user_id: workyardUserId
+    });
+
+    console.log('New Workyard user created and synced:', workyardUserId);
+    await logToFile(`New Workyard user created and synced: ${workyardUserId}`, 'sync-user');
+
+    return workyardUserId;
+  } catch (error) {
+    console.error('Error syncing user:', error.message);
+    await logToFile(`Error syncing user: ${error.message}`, 'sync-user');
+    throw error;
+  }
+}
+
+export default syncUser;
+
 export async function syncJobToWorkyard(jobTreadData) {
   try {
     // Log the incoming data
     await logToFile(jobTreadData, 'jobtread-job');
-    
-    // Transform JobTread job data to Workyard project format
-    // const workyardProjectData = mapJobTreadToWorkyardProject(jobTreadData);
-    const workyardProjectData = transformData(jobTreadData);
-    
-    // Check if this project already exists in Workyard by external_id
+
+    const rawEmail = jobTreadData.account.primaryContact.customFieldValues.Email;
+
+    // Extract email safely
+    const userEmail = rawEmail ? rawEmail.replace(/[\[\]']/g, '') : null;
+
+    console.log('email', userEmail);
+    // Extract email
+    console.log('primaryContact',jobTreadData.account.primaryContact);
+    console.log('email',userEmail);
+    const userName = jobTreadData.account.primaryContact?.name || jobTreadData.account.name;
+
+    if (!userEmail) {
+      throw new Error('No primary contact email found in webhook data');
+    }
+
+    const workyardUserId = await syncUser(userEmail, userName);
+
+    const workyardProjectData = transformData(jobTreadData,workyardUserId);
+    // workyardProjectData.org_customer_id = workyardUserId; 
+
     let existingProject = null;
     try {
-      const projects = await workyardClient.getProjects();
-      existingProject = projects.find(p => p.external_id === workyardProjectData.external_id);
-    } catch (error) {
-      console.warn('Could not check for existing projects:', error.message);
-    }
-    
-    // Send to Workyard - create new or update existing
+      // const projects = await workyardClient.getProjects();
+      // existingProject = projects.find(p => p.name === workyardProjectData?.job?.name,);
+      console.log("Fetching projects...");
+
+      const response = await workyardClient.getProjects(); // Wait for API response
+      console.log("API Response:", response);
+
+      const projectsArray = response?.data || []; // Ensure it's an array
+      // console.log("Extracted Projects Array:", projectsArray);
+
+      if (!Array.isArray(projectsArray)) {
+        console.error("Error: Projects data is not an array!");
+        return null;
+      }
+
+      console.log("Searching for project with name:", workyardProjectData?.name);
+
+      const existingProject = projectsArray.find(
+        (p) => p.name === workyardProjectData?.name
+      );
+
+      console.log("Found Project:", existingProject || "No match found");
+      } catch (error) {
+        console.warn('Could not check for existing projects:', error.message);
+      }
+
     let result;
     if (existingProject) {
       result = await workyardClient.updateExistingProject(existingProject.id, workyardProjectData);
@@ -35,7 +110,7 @@ export async function syncJobToWorkyard(jobTreadData) {
       result = await workyardClient.createOrUpdateProject(workyardProjectData);
       console.log('Created new project in Workyard');
     }
-    
+
     return {
       success: true,
       message: existingProject ? 'Project updated in Workyard' : 'Project created in Workyard',

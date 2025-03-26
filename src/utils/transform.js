@@ -77,23 +77,10 @@ export function extractAddress(jobTreadData) {
 }
 
 
-export function transformData(inputData) {
+export function transformData(inputData,workYardCustomerId) {
   return {
     name: inputData.job.name,//inputData.job.name,
-    org_customer_id: 196460, // No mapping provided, set to default
-    // manager_ids: [], // No mapping provided
-    // cost_code_ids: [], // No mapping provided
-    // project_group_ids: [], // No mapping provided
-    // geofence_ids: [], // No mapping provided
-    // locations: [
-    //   {       
-    //     "name": "Main Street 3",
-    //     "latitude": "43.68794949999998",
-    //     "longitude": "-79.30171109999998",
-    //     "geofence_radius_meters": 8
-    //   }
-    // ]
-
+    org_customer_id: workYardCustomerId,//196460, // No mapping provided, set to default
     locations: [
       {       
         "name": inputData.location.name,
@@ -102,23 +89,6 @@ export function transformData(inputData) {
         "geofence_radius_meters": 20
       }
     ]
-    // google_places: [
-    //   {
-    //     uuid: inputData.location.id,
-    //     name: inputData.location.name,
-    //     ext_address_id: inputData.location.id,
-    //     geofence_radius_meters: 0.1
-    //   }
-    // ],
-    // locations: [
-    //   {
-    //     uuid: inputData.location.id,
-    //     name: inputData.location.name,
-    //     latitude: parseFloat(inputData.location.latitude),
-    //     longitude: parseFloat(inputData.location.longitude),
-    //     geofence_radius_meters: 0.1
-    //   }
-    // ],
-    // polygon_geofences: [] // No mapping provided
+    
   };
 }
