@@ -29,5 +29,5 @@ pids
 .DS_Store
 Thumbs.db
 .qodo
-./git_push.sh
-./switch_ssh.sh
+.git_push.sh
+.switch_ssh.sh
