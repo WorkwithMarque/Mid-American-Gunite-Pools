@@ -29,7 +29,7 @@ class WorkyardClient {
     try {
       console.log(`Making request to ${url} with data:`, data);
       const response = await axios(options);
-      console.log(`Workyard API response:`, response.data);
+      // console.log(`Workyard API response:`, response.data);
       return response.data;
   
     } catch (error) {

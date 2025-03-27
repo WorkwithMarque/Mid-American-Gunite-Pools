@@ -81,7 +81,7 @@ export async function syncJobToWorkyard(jobTreadData) {
       console.log("Fetching projects...");
 
       const response = await workyardClient.getProjects(); // Wait for API response
-      console.log("API Response:", response);
+      // console.log("API Response:", response);
 
       const projectsArray = response?.data || []; // Ensure it's an array
       // console.log("Extracted Projects Array:", projectsArray);
