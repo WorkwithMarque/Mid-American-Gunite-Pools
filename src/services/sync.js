@@ -112,6 +112,7 @@ export async function syncJobToWorkyard(jobTreadData) {
         workyardProjectId: result.id,
         projectName: workyardProjectData.name
       });
+      await syncMetricsToJobTread(result.id, jobTreadData.job?.id);
     } else {
       result = await workyardClient.createOrUpdateProject(workyardProjectData);
       console.log('Created new project in Workyard');
