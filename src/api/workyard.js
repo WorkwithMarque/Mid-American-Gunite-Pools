@@ -29,7 +29,7 @@ class WorkyardClient {
     try {
       console.log(`Making request to ${url} with data:`, data);
       const response = await axios(options);
-      // console.log(`Workyard API response:`, response.data);
+      console.log(`Workyard API response:`, response.data);
       return response.data;
   
     } catch (error) {
@@ -91,6 +91,21 @@ class WorkyardClient {
     return this.request(`/orgs/${this.orgId}/projects`);
   }
 
+  async getProjectById(projectId) {
+    if (!projectId) throw new Error("Project ID is required");
+  
+    const endpoint = `/orgs/${this.orgId}/projects?id=eq:${projectId}&include_computed_totals=true`;
+    const response = await this.request(endpoint, 'GET');
+    // response = response.data
+    // console.log('get project by id data',response.data);
+    // The response is an array, so return the first item
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      return response.data[0];
+    } else {
+      throw new Error(`Project with ID ${projectId} not found`);
+    }
+  }
+  
   async getWorkedHours(startDate, endDate) {
     return this.request(`/time-entries?start_date=${startDate}&end_date=${endDate}`);
   }

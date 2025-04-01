@@ -1,5 +1,5 @@
 import express from 'express';
-import { syncJobToWorkyard, syncWorkedHoursToJobTread } from '../services/sync.js';
+import { syncJobToWorkyard, syncWorkedHoursToJobTread,syncMetricsToJobTread } from '../services/sync.js';
 import config from '../config.js';
 
 const router = express.Router();
@@ -50,6 +50,32 @@ router.post('/hours', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error syncing worked hours',
+      error: config.server.environment === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+router.post('/sync-metrics', async (req, res) => {
+  try {
+    console.log('Manual trigger of metrics sync');
+    
+    const { workyardProjectId, jobTreadJobId } = req.body;
+    console.log("Workyard Project ID:", workyardProjectId);
+    console.log("JobTread Job ID:", jobTreadJobId);
+    // Use the sync service to handle the hours sync
+    const result = await syncMetricsToJobTread(workyardProjectId, jobTreadJobId);
+    
+    if (res.status(200)) {
+      res.status(200).json(result);
+    } else {
+      res.status(500).json(result);
+    }
+  } catch (error) {
+    console.error('Error processing metrics sync:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Error syncing metrics',
       error: config.server.environment === 'development' ? error.message : 'Internal server error'
     });
   }

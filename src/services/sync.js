@@ -3,6 +3,7 @@ import { transformData } from '../utils/transform.js';
 import { logToFile } from '../utils/logging.js';
 import config from '../config.js';
 import db from '../db.js'; 
+import axios from 'axios';
 /**
  * Synchronize a JobTread job to Workyard as a project
  * @param {Object} jobTreadData - Job data from JobTread
@@ -106,9 +107,22 @@ export async function syncJobToWorkyard(jobTreadData) {
     if (existingProject) {
       result = await workyardClient.updateExistingProject(existingProject.id, workyardProjectData);
       console.log(`Updated existing project ${existingProject.id} in Workyard`);
+      await saveProjectMapping({
+        jobthreadJobId: jobTreadData.job?.id,
+        workyardProjectId: result.id,
+        projectName: workyardProjectData.name
+      });
     } else {
       result = await workyardClient.createOrUpdateProject(workyardProjectData);
       console.log('Created new project in Workyard');
+      // After project is created/updated
+      await saveProjectMapping({
+        jobthreadJobId: jobTreadData.job?.id,
+        workyardProjectId: result.id,
+        projectName: workyardProjectData.name
+      });
+
+      await syncMetricsToJobTread(result.id, jobTreadData.job?.id);
     }
 
     return {
@@ -213,3 +227,125 @@ export function scheduleHoursSync(intervalHours = 6) {
     });
   }, intervalMs);
 }
+
+export async function saveProjectMapping({ jobthreadJobId, workyardProjectId, projectName }) {
+  try {
+    const existing = await db('projects')
+      .where({ jobthread_job_id: jobthreadJobId })
+      .first();
+
+    if (existing) {
+      console.log(`Project already exists for job ID ${jobthreadJobId}, updating...`);
+      await db('projects')
+        .where({ jobthread_job_id: jobthreadJobId })
+        .update({
+          workyard_project_id: workyardProjectId,
+          name: projectName,
+          updated_at: new Date()
+        });
+    } else {
+      console.log(`Inserting new project mapping for job ID ${jobthreadJobId}`);
+      await db('projects').insert({
+        jobthread_job_id: jobthreadJobId,
+        workyard_project_id: workyardProjectId,
+        name: projectName
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving project mapping:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+// const axios = require('axios');
+
+
+export async function syncMetricsToJobTread( workyardProjectId, jobTreadJobId ) {
+
+  console.log("Syncing metrics for project ID:", workyardProjectId);
+  const customFieldMap = {
+    time: '22P7N26yTY7E',   
+    pay: '22P7N2FRXgsN',    
+    miles: '22P7N2JVBpNA',  
+    travel: '22P7N2NMGu8D'  
+  };
+  const project = await workyardClient.getProjectById(workyardProjectId);
+  const grantKey = config.jobTread.grantKey;
+  const payload = {
+    query: {
+      $: { 
+        grantKey
+      },
+      updateJob: {
+        $: {
+          id: jobTreadJobId,
+          customFieldValues: {
+            [customFieldMap.time]: formatDuration(project.total_time_allocated_secs) ?? "N/A",
+            [customFieldMap.pay]: formatPay(project.total_pay_allocated) ?? "N/A",
+            [customFieldMap.miles]: convertMetersToMiles(project.total_mileage_assigned_meters) ?? "N/A",
+            [customFieldMap.travel]: formatDuration(project.total_travel_duration_secs) ?? "N/A"
+           
+          }
+        },
+        job: {
+          $: {
+            id: jobTreadJobId
+          },
+          id: {},
+          name: {},
+          customFieldValues: {
+            $: {
+              size: 25
+            },
+            nodes: {
+              id: {},
+              value: {},
+              customField: {
+                id: {}
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+  
+
+  console.log("Payload:", payload);
+
+  const updateJobResponse = await axios.post('https://api.jobtread.com/pave', payload);
+  console.log("Update Job Response:", updateJobResponse);
+}
+
+
+export function formatDuration(seconds) {
+  if (!seconds || isNaN(seconds)) return '0 min';
+
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+
+  const hrsPart = hrs > 0 ? `${hrs} h${hrs !== 1 ? 's' : ''}` : '';
+  const minsPart = mins > 0 ? `${mins} m${mins !== 1 ? 's' : ''}` : '';
+
+  return [hrsPart, minsPart].filter(Boolean).join(' ');
+}
+
+
+export function formatPay(amount) {
+  if (isNaN(amount)) return '$0.00';
+
+  return `$${parseFloat(amount).toFixed(2)}`;
+}
+
+
+export function convertMetersToMiles(meters) {
+  if (!meters || isNaN(meters)) return '0 mi';
+
+  const miles = meters / 1609.344;
+  return `${miles.toFixed(2)} mi`;
+}
+
+
+

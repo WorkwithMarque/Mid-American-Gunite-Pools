@@ -17,6 +17,9 @@ export default {
     apiKey: process.env.WORKYARD_API_KEY,
     orgId: process.env.ORG_ID,
   },
+  jobTread: {
+    grantKey: process.env.JOBTREAD_GRANT_KEY,
+  },
   server: {
     port: process.env.PORT || 3000,
     environment: process.env.NODE_ENV || 'development',
