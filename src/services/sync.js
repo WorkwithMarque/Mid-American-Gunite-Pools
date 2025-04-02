@@ -123,6 +123,7 @@ export async function syncJobToWorkyard(jobTreadData) {
         projectName: workyardProjectData.name
       });
 
+      // await syncMetricsToJobTread(result.id, "22P7QxFaLHNm");
       await syncMetricsToJobTread(result.id, jobTreadData.job?.id);
     }
 
@@ -237,6 +238,7 @@ export async function saveProjectMapping({ jobthreadJobId, workyardProjectId, pr
 
     if (existing) {
       console.log(`Project already exists for job ID ${jobthreadJobId}, updating...`);
+      await logToFile(`Project already exists for job ID: ${jobthreadJobId}`, 'job-mapping');
       await db('projects')
         .where({ jobthread_job_id: jobthreadJobId })
         .update({
@@ -246,11 +248,15 @@ export async function saveProjectMapping({ jobthreadJobId, workyardProjectId, pr
         });
     } else {
       console.log(`Inserting new project mapping for job ID ${jobthreadJobId}`);
-      await db('projects').insert({
+      await logToFile(`Inserting new project mapping for job ID: ${jobthreadJobId}`, 'job-mapping');
+      const record = await db('projects').insert({
         jobthread_job_id: jobthreadJobId,
         workyard_project_id: workyardProjectId,
         name: projectName
       });
+
+      await logToFile(`Inserted new project mapping for job ID: ${jobthreadJobId}`, 'job-mapping');
+      await logToFile(record, 'job-mapping');
     }
 
     return { success: true };

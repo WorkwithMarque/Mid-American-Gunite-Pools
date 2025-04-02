@@ -1,5 +1,6 @@
 import express from 'express';
 import { syncJobToWorkyard, syncWorkedHoursToJobTread,syncMetricsToJobTread } from '../services/sync.js';
+import { syncWorkyardMetricsToJobTread } from '../services/cron.js';
 import config from '../config.js';
 
 const router = express.Router();
@@ -81,4 +82,26 @@ router.post('/sync-metrics', async (req, res) => {
   }
 });
 
+router.post('/sync-all-projects', async (req, res) => {
+  try {
+    console.log('Manual trigger of all projects sync');
+    
+    // Use the sync service to handle the hours sync
+    const result = await syncWorkyardMetricsToJobTread()
+    
+    if (res.status(200)) {
+      res.status(200).json(result);
+    } else {
+      res.status(500).json(result);
+    }
+  } catch (error) {
+    console.error('Error processing hours sync:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Error syncing worked hours',
+      error: config.server.environment === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
 export default router;

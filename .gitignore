@@ -31,3 +31,5 @@ Thumbs.db
 .qodo
 git_push.sh
 switch_ssh.sh
+dev.sqlite3
+
