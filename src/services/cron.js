@@ -83,9 +83,9 @@ const grantKey = config.jobTread.grantKey;
 export async function syncWorkyardMetricsToJobTread() {
     console.log('🔄 Running Workyard → JobTread sync task...');
     
-    let page = 323;
+    let page = 324;
     const limit = 1; // Adjust if needed
-    let totalPages = 324;
+    let totalPages = 1;
   
     try {
       do {
@@ -95,7 +95,7 @@ export async function syncWorkyardMetricsToJobTread() {
         );
   
         const allProjects = response.data;
-        // totalPages = response.meta?.last_page || 1; // Extract total pages from metadata
+        totalPages = response.meta?.last_page || 1; // Extract total pages from metadata
   
         for (const project of allProjects) {
           const { id: workyardProjectId } = project;

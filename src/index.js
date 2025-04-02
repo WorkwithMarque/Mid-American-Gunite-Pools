@@ -7,7 +7,10 @@ import fs from 'fs';
 
 import webhookRoutes from './routes/webhooks.js';
 import { scheduleHoursSync } from './services/sync.js';
+import { syncWorkyardMetricsToJobTread } from './services/cron.js';
 import config from './config.js';
+import cron from 'node-cron';
+import { logToFile } from './utils/logging.js';
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +49,19 @@ app.listen(PORT, () => {
     scheduleHoursSync(syncInterval);
     console.log(`Automatic hours sync enabled, running every ${syncInterval} hours`);
   }
+});
+
+cron.schedule('* * * * *', async () => {
+  try {
+    logToFile('Running cron job');
+    await syncWorkyardMetricsToJobTread();
+    logToFile('Cron job completed successfully');
+    console.log('Cron job completed successfully');
+  } catch (error) {
+    console.error('Error in cron job:', error);
+    logToFile(`Error in cron job: ${error.message}`, 'cron-error');
+  }
+
 });
 
 export default app;
