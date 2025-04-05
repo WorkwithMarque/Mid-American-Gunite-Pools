@@ -19,6 +19,8 @@ export default {
   },
   jobTread: {
     grantKey: process.env.JOBTREAD_GRANT_KEY,
+    endpoint: process.env.JOBTREAD_ENDPOINT || 'https://api.jobtread.com/query',
+    orgId: process.env.JOBTREAD_ORG_ID || '22NZSNXmB6bR',
   },
   server: {
     port: process.env.PORT || 3000,

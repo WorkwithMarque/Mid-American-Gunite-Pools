@@ -53,9 +53,9 @@ app.listen(PORT, () => {
 
 cron.schedule('* * * * *', async () => {
   try {
-    logToFile('Running cron job');
+    logToFile('Running cron job','cron-info');
     await syncWorkyardMetricsToJobTread();
-    logToFile('Cron job completed successfully');
+    logToFile('Cron job completed successfully','cron-info');
     console.log('Cron job completed successfully');
   } catch (error) {
     console.error('Error in cron job:', error);
