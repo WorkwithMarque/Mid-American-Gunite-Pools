@@ -4,15 +4,18 @@
 //       filename: './dev.sqlite3', // Change this if your database file is in a different location
 //     },
 //     useNullAsDefault: true,
+
+const { config } = require('./src/config');
+
 //   });
   const knex = require('knex')({
     client: 'mysql2',
     connection: {
-      host: process.env.DB_HOST,
-      database: process.env.DB_NAME,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      port: process.env.DB_PORT || 3306
+      host: config.mysql.host,
+      database: config.mysql.database,
+      user: config.mysql.user,
+      password: config.mysql.password,
+      port: config.mysql.port
     },
     pool: { min: 2, max: 10 },
     migrations: {
