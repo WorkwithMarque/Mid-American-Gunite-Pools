@@ -1,11 +1,25 @@
-const knex = require('knex')({
-    client: 'sqlite3',
+// const knex = require('knex')({
+//     client: 'sqlite3',
+//     connection: {
+//       filename: './dev.sqlite3', // Change this if your database file is in a different location
+//     },
+//     useNullAsDefault: true,
+//   });
+  const knex = require('knex')({
+    client: 'mysql2',
     connection: {
-      filename: './dev.sqlite3', // Change this if your database file is in a different location
+      host: process.env.DB_HOST,
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      port: process.env.DB_PORT || 3306
     },
-    useNullAsDefault: true,
+    pool: { min: 2, max: 10 },
+    migrations: {
+      tableName: 'knex_migrations',
+      directory: `${__dirname}/migrations`
+    }
   });
-  
   async function testInsert() {
     try {
       // Insert a test project
