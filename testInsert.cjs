@@ -5,7 +5,7 @@
 //     },
 //     useNullAsDefault: true,
 
-const { config } = require('./src/config');
+import config from './src/config';
 
 //   });
   const knex = require('knex')({
