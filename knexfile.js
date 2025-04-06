@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import config from './src/config';
 
 // Load environment variables
-dotenv.config();
+// dotenv.config();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
