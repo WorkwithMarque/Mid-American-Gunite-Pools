@@ -5,14 +5,15 @@
 //     },
 //     useNullAsDefault: true,
 //   });
+
 const { configDotenv } = require('dotenv');
 configDotenv();
   const knex = require('knex')({
     client: 'mysql2',
     connection: {
       host: process.env.DB_HOST,
-      database: process.env.DB_NAME,
-      user: process.env.DB_USER,
+      database: process.env.DB_DATABASE,
+      user: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       port: process.env.DB_PORT || 3306
     },
