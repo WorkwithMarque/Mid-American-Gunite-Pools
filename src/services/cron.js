@@ -22,8 +22,8 @@ export async function syncWorkyardMetricsToJobTread() {
     console.log('🔄 Running Workyard → JobTread sync task...');
     logToFile('🔄 Running Workyard → JobTread sync task...', 'jobtread-update');
     
-    let page = 324;
-    const limit = 1; // Adjust if needed
+    let page = 1;
+    const limit = 50; // Adjust if needed
     let totalPages = 1;
   
     try {

@@ -51,7 +51,7 @@ app.listen(PORT, () => {
   }
 });
 
-cron.schedule('* * * * *', async () => {
+cron.schedule('*/5 * * * *', async () => {
   try {
     logToFile('Running cron job','cron-info');
     await syncWorkyardMetricsToJobTread();
