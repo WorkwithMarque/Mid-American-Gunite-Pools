@@ -3,6 +3,7 @@ import db from '../db.js';
 import axios from 'axios';
 import { formatDuration, formatPay, convertMetersToMiles } from './sync.js'; // from earlier
 import config from '../config.js';
+import { logToFile } from '../utils/logging.js';
 
 // const workyardClient = new workyardClient();
 
@@ -19,6 +20,7 @@ const grantKey = config.jobTread.grantKey;
 
 export async function syncWorkyardMetricsToJobTread() {
     console.log('🔄 Running Workyard → JobTread sync task...');
+    logToFile('🔄 Running Workyard → JobTread sync task...', 'jobtread-update');
     
     let page = 324;
     const limit = 1; // Adjust if needed
@@ -43,6 +45,7 @@ export async function syncWorkyardMetricsToJobTread() {
             .first();
   
           if (!localProject || !localProject.jobthread_job_id) {
+            logToFile(`Skipping project ${workyardProjectId} — no matching JobThread job found.`, 'jobtread-update');
             console.log(`Skipping project ${workyardProjectId} — no matching JobThread job found.`);
             continue;
           }
@@ -80,8 +83,10 @@ export async function syncWorkyardMetricsToJobTread() {
               headers: { 'Content-Type': 'application/json' },
             });
   
+            logToFile(res.data, 'jobtread-update');
             console.log(`Synced job ${localProject.jobthread_job_id}:`, res.data);
           } catch (err) {
+            logToFile(err.response?.data || err.message, 'jobtread-update');
             console.error(`Error updating job ${localProject.jobthread_job_id}:`, err.response?.data || err.message);
           }
         }
@@ -90,6 +95,7 @@ export async function syncWorkyardMetricsToJobTread() {
       } while (page <= totalPages);
   
     } catch (error) {
+      logToFile(error.message, 'jobtread-update');
       console.error(' Failed to sync metrics:', error.message);
     }
   }

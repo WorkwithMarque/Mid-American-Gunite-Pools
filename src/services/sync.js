@@ -107,6 +107,7 @@ export async function syncJobToWorkyard(jobTreadData) {
     if (existingProject) {
       result = await workyardClient.updateExistingProject(existingProject.id, workyardProjectData);
       console.log(`Updated existing project ${existingProject.id} in Workyard`);
+      logToFile(`Updated existing project ${existingProject.id} in Workyard`);
       await saveProjectMapping({
         jobthreadJobId: jobTreadData.job?.id,
         workyardProjectId: result.id,
@@ -116,6 +117,7 @@ export async function syncJobToWorkyard(jobTreadData) {
     } else {
       result = await workyardClient.createOrUpdateProject(workyardProjectData);
       console.log('Created new project in Workyard');
+      logToFile(`Created new project in Workyard`);
       // After project is created/updated
       await saveProjectMapping({
         jobthreadJobId: jobTreadData.job?.id,

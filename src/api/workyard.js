@@ -1,5 +1,6 @@
 import config from '../config.js';
 import axios from 'axios';
+import { logToFile } from '../utils/logging.js';
 
 class WorkyardClient {
   constructor() {
@@ -33,6 +34,7 @@ class WorkyardClient {
       return response.data;
   
     } catch (error) {
+      logToFile(error, 'workyard-error');
         if (error.code === 'ECONNABORTED') {
             console.error(`Request to ${endpoint} timed out after ${timeout / 1000}s`);
             throw new Error(`Request to ${endpoint} timed out`);
