@@ -37,6 +37,8 @@ export async function syncWorkyardMetricsToJobTread() {
         totalPages = response.meta?.last_page || 1; // Extract total pages from metadata
   
         for (const project of allProjects) {
+          console.log(`Syncing project ${project.name} (${project.id})...`);
+          logToFile(`Syncing project ${project.name} (${project})...`, 'jobtread-update');
           const { id: workyardProjectId } = project;
   
           // Get corresponding JobThread job ID from DB
