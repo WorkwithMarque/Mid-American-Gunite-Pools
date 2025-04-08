@@ -29,7 +29,7 @@ export async function syncWorkyardMetricsToJobTread() {
     try {
       do {
         const response = await workyardClient.request(
-          `/orgs/${workyardClient.orgId}/projects?limit=${limit}&page=${page}`,
+          `/orgs/${workyardClient.orgId}/projects?limit=${limit}&page=${page}&include_computed_totals=true`,
           'GET'
         );
   
